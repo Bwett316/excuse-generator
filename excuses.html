@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Corporate Excuse Generator</title>
+<style>
+  :root{
+    --chrome:#f1f2f4;
+    --panel:#ffffff;
+    --border:#c3c7ce;
+    --border-strong:#9aa1ab;
+    --ink:#22262b;
+    --ink-soft:#5b626b;
+    --accent:#1f4e79;
+    --accent-dark:#163a5a;
+    --band:#e8ebee;
+    --warn:#8a6d1f;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:var(--chrome);
+    color:var(--ink);
+    font-family:"Segoe UI",Tahoma,Verdana,Geneva,Arial,sans-serif;
+    font-size:13px;
+    line-height:1.45;
+  }
+  /* ---- application title bar ---- */
+  .titlebar{
+    background:linear-gradient(180deg,#2a5f8f 0%,var(--accent) 45%,var(--accent-dark) 100%);
+    color:#fff;
+    padding:6px 12px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    border-bottom:1px solid #0f2740;
+  }
+  .titlebar .mark{
+    width:18px;height:18px;
+    background:#fff;
+    color:var(--accent);
+    font-weight:700;
+    font-size:11px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:2px;
+  }
+  .titlebar h1{font-size:13px;font-weight:600;margin:0;letter-spacing:.2px}
+  .titlebar .env{
+    margin-left:auto;
+    font-size:11px;
+    opacity:.85;
+    font-family:Consolas,"Courier New",monospace;
+  }
+  /* ---- menu strip ---- */
+  .menubar{
+    background:var(--band);
+    border-bottom:1px solid var(--border);
+    padding:4px 12px;
+    font-size:12px;
+    color:var(--ink-soft);
+    display:flex;
+    gap:18px;
+  }
+  .menubar span{cursor:default}
+  .menubar span:first-child{color:var(--ink);font-weight:600}
+  /* ---- layout ---- */
+  .wrap{
+    max-width:860px;
+    margin:0 auto;
+    padding:18px 16px 40px;
+  }
+  .breadcrumb{
+    font-size:11px;
+    color:var(--ink-soft);
+    margin-bottom:12px;
+  }
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    margin-bottom:14px;
+  }
+  .panel > header{
+    background:var(--band);
+    border-bottom:1px solid var(--border);
+    padding:6px 12px;
+    font-size:12px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:.6px;
+    color:var(--ink-soft);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .panel > header .meta{
+    font-weight:400;
+    text-transform:none;
+    letter-spacing:0;
+    font-family:Consolas,"Courier New",monospace;
+    font-size:11px;
+  }
+  .panel .body{padding:16px 18px}
+  .intro p{margin:0 0 8px;color:var(--ink-soft)}
+  .intro p:last-child{margin-bottom:0}
+  /* ---- the button ---- */
+  .action{
+    text-align:center;
+    padding:22px 18px 24px;
+  }
+  button#generate{
+    font-family:inherit;
+    font-size:14px;
+    font-weight:600;
+    color:#fff;
+    background:linear-gradient(180deg,#2a5f8f 0%,var(--accent) 50%,var(--accent-dark) 100%);
+    border:1px solid #143451;
+    border-radius:2px;
+    padding:12px 26px;
+    cursor:pointer;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.25), 0 1px 1px rgba(0,0,0,.12);
+  }
+  button#generate:hover{background:linear-gradient(180deg,#31699a 0%,#23578a 50%,#1a4266 100%)}
+  button#generate:active{
+    background:linear-gradient(180deg,var(--accent-dark) 0%,var(--accent) 100%);
+    box-shadow:inset 0 2px 3px rgba(0,0,0,.3);
+  }
+  button#generate:focus-visible{outline:2px dotted #143451;outline-offset:3px}
+  .action .hint{
+    margin-top:10px;
+    font-size:11px;
+    color:var(--ink-soft);
+  }
+  /* ---- output ---- */
+  .output .placeholder{
+    color:var(--ink-soft);
+    font-style:italic;
+  }
+  .remark{
+    border-left:3px solid var(--warn);
+    background:#fcf8ec;
+    padding:8px 12px;
+    margin:0 0 14px;
+    font-size:12px;
+    color:#6b551a;
+  }
+  .excuse{
+    font-size:15px;
+    line-height:1.6;
+    margin:0 0 16px;
+  }
+  .fields{
+    width:100%;
+    border-collapse:collapse;
+    font-size:12px;
+  }
+  .fields th,.fields td{
+    border:1px solid var(--border);
+    padding:6px 10px;
+    text-align:left;
+    vertical-align:top;
+  }
+  .fields th{
+    background:var(--band);
+    width:190px;
+    font-weight:600;
+    color:var(--ink-soft);
+  }
+  .fields td{font-family:Consolas,"Courier New",monospace}
+  .stamp{
+    margin-top:14px;
+    display:inline-block;
+    border:1px solid var(--border-strong);
+    background:#f6f7f8;
+    padding:5px 10px;
+    font-family:Consolas,"Courier New",monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+  }
+  /* ---- footer ---- */
+  .statusbar{
+    border-top:1px solid var(--border);
+    background:var(--band);
+    padding:6px 12px;
+    font-size:11px;
+    color:var(--ink-soft);
+    display:flex;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .legal{
+    margin-top:16px;
+    font-size:10.5px;
+    color:#7d848d;
+    line-height:1.5;
+  }
+  @media (max-width:560px){
+    .fields th{width:auto;display:block;border-bottom:none}
+    .fields td{display:block}
+    .fields tr{display:block;margin-bottom:-1px}
+    button#generate{width:100%}
+  }
+</style>
+</head>
+<body>
+
+<div class="titlebar">
+  <div class="mark">CE</div>
+  <h1>Corporate Excuse Generator &mdash; Enterprise Edition</h1>
+  <div class="env">ENV: PROD &nbsp;|&nbsp; v4.2.1-build.8871</div>
+</div>
+
+<div class="menubar">
+  <span>File</span><span>Edit</span><span>Compliance</span><span>Reports</span><span>Window</span><span>Help</span>
+</div>
+
+<div class="wrap">
+  <div class="breadcrumb">Home &rsaquo; Workforce Communications &rsaquo; Justification Services &rsaquo; <strong>Excuse Issuance Terminal</strong></div>
+
+  <section class="panel intro">
+    <header>Module Overview <span class="meta">FORM EXC-01 (REV. 14)</span></header>
+    <div class="body">
+      <p>This terminal issues pre-approved workplace justifications in accordance with Internal Policy 14.7(b), as amended. All issued statements have been reviewed by the Office of Plausible Explanations and are cleared for verbal or written distribution to colleagues, stakeholders, and adjacent departments.</p>
+      <p>Each issuance is assigned a non-transferable reference number. Retain this number for your records. Reference numbers may be requested during quarterly accountability reviews.</p>
+    </div>
+  </section>
+
+  <section class="panel">
+    <header>Issuance Control <span class="meta">AUTHORIZATION LEVEL: STANDARD</span></header>
+    <div class="body action">
+      <button id="generate" type="button">Generate Approved Corporate Excuse</button>
+      <div class="hint">Unlimited issuance permitted. Excessive issuance may be noted.</div>
+    </div>
+  </section>
+
+  <section class="panel output">
+    <header>Issued Justification <span class="meta" id="statusLabel">STATUS: AWAITING REQUEST</span></header>
+    <div class="body" id="output">
+      <p class="placeholder">No justification has been issued during this session. Select &ldquo;Generate Approved Corporate Excuse&rdquo; above to begin.</p>
+    </div>
+  </section>
+
+  <div class="statusbar">
+    <span>Session ID: <strong id="sessionId">&mdash;</strong></span>
+    <span>Issuances this session: <strong id="counter">0</strong></span>
+    <span>Connection: Secure (internal)</span>
+  </div>
+
+  <p class="legal">
+    CONFIDENTIAL &mdash; INTERNAL USE ONLY. Justifications produced by this system are provided on an as-is basis and do not constitute a commitment, admission, or explanation. The Office of Plausible Explanations accepts no liability for outcomes arising from the use, misuse, or thoughtful reuse of issued content. Redistribution outside the organization requires written approval from a person who is currently unavailable. &copy; 2026 Operational Continuity Group. All rights reserved, including those not yet identified.
+  </p>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var REMARKS = [
+    "We apologize for the convenience.",
+    "Your patience has been logged and will be acknowledged at a later date.",
+    "We regret any clarity this may have caused.",
+    "Thank you for your understanding, which has been assumed on your behalf.",
+    "We are sorry for any inconvenience this resolution may cause.",
+    "This message serves as both an apology and a formality.",
+    "We appreciate your flexibility and have recorded it as a performance strength.",
+    "Please accept our apologies, which are non-refundable.",
+    "We value your time and have allocated a portion of it to this notice.",
+    "Any distress caused by this communication is considered within acceptable tolerances."
+  ];
+
+  var EXCUSES = [
+    "The deliverable is currently undergoing an unscheduled period of strategic reflection and will re-enter the workflow once alignment has been achieved.",
+    "Owing to a calendar collision of exceptional severity, the relevant stakeholder was unable to occupy the meeting in the manner originally forecast.",
+    "The document remains in transit between two adjacent inboxes and is expected to complete the journey within the standard interdepartmental window.",
+    "A dependency upstream of this task has entered a state of indefinite consideration, pending guidance from a party yet to be identified.",
+    "The approval was granted verbally, in a room, to a person whose attendance at that meeting cannot presently be confirmed.",
+    "Following a routine synchronization event, the file was migrated to a location consistent with policy but inconsistent with human retrieval.",
+    "This item was deprioritized during a reprioritization exercise that has itself since been deprioritized.",
+    "The responsible team is operating at reduced capacity due to a company-wide initiative to increase capacity.",
+    "A quality gate was applied retroactively, resulting in the successful prevention of work that had already been completed.",
+    "The request was received outside of business hours and has been queued behind a number of items that were also received outside of business hours.",
+    "Access to the required system was revoked as part of a security improvement and will be restored following a review of why it was revoked.",
+    "The specification was updated in parallel with its implementation, and the two are now engaged in ongoing reconciliation.",
+    "An external vendor has confirmed receipt of our inquiry and indicated that a response is among the outcomes they are considering.",
+    "The meeting concluded without a decision, in accordance with the agenda, which did not include one.",
+    "A single source of truth was established last quarter; efforts are underway to determine which one it is.",
+    "The task is blocked pending a conversation that both parties believe the other party is responsible for scheduling.",
+    "Resource allocation for this workstream was optimized to zero as part of a broader efficiency success story.",
+    "The relevant subject-matter expert has moved into a role in which they are no longer permitted to be an expert on this subject.",
+    "A previously agreed deadline has been reclassified as an aspiration to better reflect operational realities on the ground.",
+    "The update was communicated in a channel that has since been archived for reasons of channel hygiene."
+  ];
+
+  var CATEGORIES = [
+    "Schedule Variance",
+    "Dependency Management",
+    "Stakeholder Alignment",
+    "Process Compliance",
+    "Resource Optimization",
+    "Information Governance",
+    "Vendor Relations",
+    "Operational Continuity"
+  ];
+
+  var DEPARTMENTS = [
+    "Office of Plausible Explanations",
+    "Strategic Delay Services",
+    "Interdepartmental Liaison Group",
+    "Workflow Assurance Division",
+    "Continuous Realignment Team",
+    "Bureau of Internal Timelines"
+  ];
+
+  var SEVERITY = [
+    "Routine (Tier 3)",
+    "Elevated (Tier 2)",
+    "Notable (Tier 2b)",
+    "Standard (Tier 3)",
+    "Monitored (Tier 1)"
+  ];
+
+  var DISPOSITION = [
+    "Approved for immediate use",
+    "Approved with reservations",
+    "Approved, pending nothing further",
+    "Approved under delegated authority",
+    "Approved retroactively"
+  ];
+
+  function pick(list) {
+    return list[Math.floor(Math.random() * list.length)];
+  }
+
+  function pad(value, width) {
+    var s = String(value);
+    while (s.length < width) { s = "0" + s; }
+    return s;
+  }
+
+  function referenceNumber() {
+    return "EXC-2026-" + pad(Math.floor(Math.random() * 9999) + 1, 4);
+  }
+
+  function sessionCode() {
+    var chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    var out = "";
+    for (var i = 0; i < 6; i++) {
+      out += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return "SN-" + out;
+  }
+
+  function timestamp() {
+    var d = new Date();
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1, 2) + "-" + pad(d.getDate(), 2) +
+           " " + pad(d.getHours(), 2) + ":" + pad(d.getMinutes(), 2) + ":" + pad(d.getSeconds(), 2);
+  }
+
+  function escapeHtml(text) {
+    return text.replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
+
+  var output = document.getElementById("output");
+  var statusLabel = document.getElementById("statusLabel");
+  var counterEl = document.getElementById("counter");
+  var count = 0;
+
+  document.getElementById("sessionId").textContent = sessionCode();
+
+  document.getElementById("generate").addEventListener("click", function () {
+    count += 1;
+    counterEl.textContent = String(count);
+
+    var ref = referenceNumber();
+    statusLabel.textContent = "STATUS: ISSUED — " + ref;
+
+    output.innerHTML =
+      '<p class="remark">NOTICE: ' + escapeHtml(pick(REMARKS)) + "</p>" +
+      '<p class="excuse">' + escapeHtml(pick(EXCUSES)) + "</p>" +
+      '<table class="fields">' +
+        "<tr><th>Reference Number</th><td>" + ref + "</td></tr>" +
+        "<tr><th>Classification</th><td>" + escapeHtml(pick(CATEGORIES)) + "</td></tr>" +
+        "<tr><th>Issuing Department</th><td>" + escapeHtml(pick(DEPARTMENTS)) + "</td></tr>" +
+        "<tr><th>Severity Rating</th><td>" + escapeHtml(pick(SEVERITY)) + "</td></tr>" +
+        "<tr><th>Disposition</th><td>" + escapeHtml(pick(DISPOSITION)) + "</td></tr>" +
+        "<tr><th>Date of Issue</th><td>" + timestamp() + "</td></tr>" +
+        "<tr><th>Review Required By</th><td>Not applicable at this time</td></tr>" +
+      "</table>" +
+      '<div class="stamp">ELECTRONICALLY APPROVED — NO SIGNATURE REQUIRED — ' + ref + "</div>";
+  });
+})();
+</script>
+</body>
+</html>
